@@ -15,6 +15,7 @@ import 'package:lcs_new_age/location/district.dart';
 import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
+import 'package:lcs_new_age/playthrough_log/playthrough_log.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/politics/views.dart';
@@ -246,6 +247,9 @@ Future<bool> loadGame(SaveFile selectedSave) async {
       "L - ${selectedSave.gameState != null ? "Load Game" : "Load Game (Crash Report Expected)"}");
   addOptionText(y++, 1, "D", "D - Delete Save");
   addOptionText(y++, 1, "E", "E - Export Save File");
+if (selectedSave.gameState != null) {
+  addOptionText(y++, 1, "P", "P - Export Playthrough Log");
+}
   mvaddstr(++y, 1, "Press the key for the action you want to take.");
   while (true) {
     int c = await getKey();
@@ -256,6 +260,11 @@ Future<bool> loadGame(SaveFile selectedSave) async {
       return false;
     } else if (c == Key.e) {
       await backupSave(selectedSave);
+} else if (c == Key.p) {
+  final state = selectedSave.gameState;
+  if (state != null) {
+    await exportPlaythroughLog(state);
+  }
     } else if (c == Key.q || isBackKey(c)) {
       return false;
     }

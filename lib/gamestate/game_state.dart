@@ -96,6 +96,12 @@ class GameState {
   @JsonKey(defaultValue: [])
   List<NewsStory> newsArchive = [];
 
+  @JsonKey(defaultValue: [])
+  List<Map<String, dynamic>> playthroughEvents = [];
+
+  @JsonKey(defaultValue: 0)
+  int playthroughSequence = 0;
+
   // Non-persisting variables (don't include in to/from JSON)
   @JsonKey(includeFromJson: false, includeToJson: false)
   Squad? get activeSquad =>
