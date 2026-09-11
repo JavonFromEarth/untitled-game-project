@@ -2,20 +2,21 @@ import 'dart:convert';
 
 import 'package:file_saver/file_saver.dart';
 import 'package:lcs_new_age/gamestate/game_state.dart';
+import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 
 void logPlaythroughEvent({
   required DateTime gameDate,
   required String type,
   Map<String, dynamic> data = const {},
 }) {
-  final event = <String, dynamic>{
-    ...data,
-    'gameId': gameState.uniqueGameId,
-    'seq': ++gameState.playthroughSequence,
-    'realTime': DateTime.now().toIso8601String(),
-    'gameDate': gameDate.toIso8601String(),
-    'type': type,
-  };
+  final event = PlaythroughEvent(
+  gameId: gameState.uniqueGameId,
+  sequence: ++gameState.playthroughSequence,
+  realTime: DateTime.now(),
+  gameDate: gameDate,
+  type: type,
+  data: data,
+);
 
   gameState.playthroughEvents.add(event);
 }
@@ -23,7 +24,7 @@ void logPlaythroughEvent({
 String playthroughLogAsJsonl(GameState state) {
   if (state.playthroughEvents.isEmpty) return '';
 
-  return '${state.playthroughEvents.map(jsonEncode).join('\n')}\n';
+  return '${state.playthroughEvents.map((event) => jsonEncode(event.toJson())).join('\n')}\n';
 }
 
 Future<void> exportPlaythroughLog(GameState state) async {

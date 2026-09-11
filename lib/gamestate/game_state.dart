@@ -22,6 +22,7 @@ import 'package:lcs_new_age/location/location.dart';
 import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
+import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/politics/politics.dart';
@@ -97,7 +98,7 @@ class GameState {
   List<NewsStory> newsArchive = [];
 
   @JsonKey(defaultValue: [])
-  List<Map<String, dynamic>> playthroughEvents = [];
+  List<PlaythroughEvent> playthroughEvents = [];
 
   @JsonKey(defaultValue: 0)
   int playthroughSequence = 0;
