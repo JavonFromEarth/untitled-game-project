@@ -39,4 +39,13 @@ void main() {
       PlaythroughEventType.sleeperReportedIn,
     );
   });
+
+  test('campaignFounded uses stable wire name', () {
+    expect(PlaythroughEventType.campaignFounded.wireName, 'campaign_founded');
+
+    expect(
+      PlaythroughEventType.fromWireName('campaign_founded'),
+      PlaythroughEventType.campaignFounded,
+    );
+  });
 }

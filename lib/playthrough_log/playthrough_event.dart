@@ -1,6 +1,7 @@
 enum PlaythroughEventType {
   recruitJoined('recruit_joined'),
-  sleeperReportedIn('sleeper_reported_in');
+  sleeperReportedIn('sleeper_reported_in'),
+  campaignFounded('campaign_founded');
 
   const PlaythroughEventType(this.wireName);
 
@@ -49,11 +50,11 @@ class PlaythroughEvent {
   final Map<String, dynamic> data;
 
   Map<String, dynamic> toJson() => {
-        ...data,
-        'gameId': gameId,
-        'seq': sequence,
-        'realTime': realTime.toIso8601String(),
-        'gameDate': gameDate.toIso8601String(),
-        'type': type.wireName,
-      };
+    ...data,
+    'gameId': gameId,
+    'seq': sequence,
+    'realTime': realTime.toIso8601String(),
+    'gameDate': gameDate.toIso8601String(),
+    'type': type.wireName,
+  };
 }

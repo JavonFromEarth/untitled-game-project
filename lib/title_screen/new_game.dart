@@ -15,6 +15,8 @@ import 'package:lcs_new_age/items/item_type.dart';
 import 'package:lcs_new_age/location/city.dart';
 import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/site.dart';
+import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
+import 'package:lcs_new_age/playthrough_log/playthrough_log.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/politics/politics.dart';
@@ -437,6 +439,12 @@ Future<void> makeCharacter() async {
   erase();
   mvaddstrc(0, 0, white, "What is your name to the people?");
   founder.name = await enterName(2, 0, founder.properName, prefill: true);
+
+  logPlaythroughEvent(
+    gameDate: gameState.date,
+    type: PlaythroughEventType.campaignFounded,
+    data: {'founderId': founder.id, 'founderName': founder.name},
+  );
 }
 
 Future<void> aNewConservativeEra() async {
