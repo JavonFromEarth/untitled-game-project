@@ -1,5 +1,6 @@
 enum PlaythroughEventType {
-  recruitJoined('recruit_joined');
+  recruitJoined('recruit_joined'),
+  sleeperReportedIn('sleeper_reported_in');
 
   const PlaythroughEventType(this.wireName);
 

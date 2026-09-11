@@ -27,4 +27,16 @@ void main() {
     expect(restored.type, original.type);
     expect(restored.data, original.data);
   });
+
+  test('sleeperReportedIn uses stable wire name', () {
+    expect(
+      PlaythroughEventType.sleeperReportedIn.wireName,
+      'sleeper_reported_in',
+    );
+
+    expect(
+      PlaythroughEventType.fromWireName('sleeper_reported_in'),
+      PlaythroughEventType.sleeperReportedIn,
+    );
+  });
 }
