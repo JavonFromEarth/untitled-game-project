@@ -9,6 +9,7 @@ import 'package:lcs_new_age/engine/engine.dart';
 import 'package:lcs_new_age/gamestate/game_state.dart';
 import 'package:lcs_new_age/gamestate/ledger.dart';
 import 'package:lcs_new_age/location/site.dart';
+import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_log.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
@@ -240,7 +241,7 @@ Future<bool> completeRecruitMeeting(RecruitmentSession r, Creature p) async {
       await sleeperizePrompt(r.recruit, p, 6);
       logPlaythroughEvent(
         gameDate: date,
-        type: 'recruit_joined',
+        type: PlaythroughEventType.recruitJoined,
         data: {
           'recruiterId': p.id,
           'recruiterName': p.name,

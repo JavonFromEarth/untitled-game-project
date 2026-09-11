@@ -6,7 +6,7 @@ import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 
 void logPlaythroughEvent({
   required DateTime gameDate,
-  required String type,
+  required PlaythroughEventType type,
   Map<String, dynamic> data = const {},
 }) {
   final event = PlaythroughEvent(

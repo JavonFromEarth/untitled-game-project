@@ -1,3 +1,17 @@
+enum PlaythroughEventType {
+  recruitJoined('recruit_joined');
+
+  const PlaythroughEventType(this.wireName);
+
+  final String wireName;
+
+  static PlaythroughEventType fromWireName(String value) {
+    return PlaythroughEventType.values.firstWhere(
+      (type) => type.wireName == value,
+    );
+  }
+}
+
 class PlaythroughEvent {
   PlaythroughEvent({
     required this.gameId,
@@ -21,7 +35,7 @@ class PlaythroughEvent {
       sequence: json['seq'] as int,
       realTime: DateTime.parse(json['realTime'] as String),
       gameDate: DateTime.parse(json['gameDate'] as String),
-      type: json['type'] as String,
+      type: PlaythroughEventType.fromWireName(json['type'] as String),
       data: data,
     );
   }
@@ -30,7 +44,7 @@ class PlaythroughEvent {
   final int sequence;
   final DateTime realTime;
   final DateTime gameDate;
-  final String type;
+  final PlaythroughEventType type;
   final Map<String, dynamic> data;
 
   Map<String, dynamic> toJson() => {
@@ -39,6 +53,6 @@ class PlaythroughEvent {
         'seq': sequence,
         'realTime': realTime.toIso8601String(),
         'gameDate': gameDate.toIso8601String(),
-        'type': type,
+        'type': type.wireName,
       };
 }

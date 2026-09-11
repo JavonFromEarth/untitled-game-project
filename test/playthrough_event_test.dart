@@ -8,7 +8,7 @@ void main() {
       sequence: 7,
       realTime: DateTime.parse('2026-09-11T00:30:00.000'),
       gameDate: DateTime(2026, 6, 15),
-      type: 'recruit_joined',
+      type: PlaythroughEventType.recruitJoined,
       data: {
         'recruitId': 42,
         'recruitName': 'Test Recruit',
@@ -17,6 +17,7 @@ void main() {
     );
 
     final json = original.toJson();
+    expect(json['type'], 'recruit_joined');
     final restored = PlaythroughEvent.fromJson(json);
 
     expect(restored.gameId, original.gameId);
