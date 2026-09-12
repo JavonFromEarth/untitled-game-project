@@ -2,6 +2,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 
 void main() {
+  test(
+    'campaignEnded uses stable wire name and preserves terminal payload',
+    () {
+      final json = <String, dynamic>{
+        'gameId': 123,
+        'seq': 9,
+        'realTime': '2026-09-12T02:00:00.000Z',
+        'gameDate': '2023-02-02T00:00:00.000',
+        'type': 'campaign_ended',
+        'archiveId': 'completion-123',
+        'outcome': 'defeat',
+        'route': 'no_qualifying_members',
+        'context': {'resolver': 'test'},
+      };
+      final restored = PlaythroughEvent.fromJson(json);
+      expect(restored.type, PlaythroughEventType.campaignEnded);
+      expect(restored.type.wireName, 'campaign_ended');
+      expect(restored.toJson(), json);
+    },
+  );
+
   test('PlaythroughEvent survives JSON round trip', () {
     final original = PlaythroughEvent(
       gameId: 123,

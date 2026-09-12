@@ -4,7 +4,8 @@ enum PlaythroughEventType {
   sleeperReportedIn('sleeper_reported_in'),
   campaignFounded('campaign_founded'),
   leadershipSucceeded('leadership_succeeded'),
-  founderBackgroundChoice('founder_background_choice');
+  founderBackgroundChoice('founder_background_choice'),
+  campaignEnded('campaign_ended');
 
   const PlaythroughEventType(this.wireName);
 
