@@ -672,7 +672,6 @@ Future<Creature?> _promoteSubordinates(Creature cr) async {
         'previousLeaderName': cr.name,
         'newLeaderId': newboss.id,
         'newLeaderName': newboss.name,
-        'reason': 'death',
       },
     );
   }

@@ -68,4 +68,51 @@ void main() {
       PlaythroughEventType.leadershipSucceeded,
     );
   });
+
+  test('leadershipSucceeded round trip does not add a reason', () {
+    final original = PlaythroughEvent(
+      gameId: 123,
+      sequence: 8,
+      realTime: DateTime.parse('2026-09-11T00:30:00.000'),
+      gameDate: DateTime(2026, 6, 15),
+      type: PlaythroughEventType.leadershipSucceeded,
+      data: {
+        'previousLeaderId': 42,
+        'previousLeaderName': 'Previous Leader',
+        'newLeaderId': 43,
+        'newLeaderName': 'New Leader',
+      },
+    );
+
+    final json = original.toJson();
+    expect(json['type'], 'leadership_succeeded');
+    expect(json.containsKey('reason'), isFalse);
+
+    final restored = PlaythroughEvent.fromJson(json);
+    expect(restored.type, PlaythroughEventType.leadershipSucceeded);
+    expect(restored.data, original.data);
+    expect(restored.data.containsKey('reason'), isFalse);
+    expect(restored.toJson(), json);
+    expect(restored.toJson().containsKey('reason'), isFalse);
+  });
+
+  test('legacy leadershipSucceeded round trip preserves death reason', () {
+    final json = <String, dynamic>{
+      'gameId': 123,
+      'seq': 8,
+      'realTime': '2026-09-11T00:30:00.000',
+      'gameDate': '2026-06-15T00:00:00.000',
+      'type': 'leadership_succeeded',
+      'previousLeaderId': 42,
+      'previousLeaderName': 'Previous Leader',
+      'newLeaderId': 43,
+      'newLeaderName': 'New Leader',
+      'reason': 'death',
+    };
+
+    final restored = PlaythroughEvent.fromJson(json);
+    expect(restored.type, PlaythroughEventType.leadershipSucceeded);
+    expect(restored.data['reason'], 'death');
+    expect(restored.toJson(), json);
+  });
 }
