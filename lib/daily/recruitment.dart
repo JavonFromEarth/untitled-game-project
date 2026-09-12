@@ -241,13 +241,14 @@ Future<bool> completeRecruitMeeting(RecruitmentSession r, Creature p) async {
       await sleeperizePrompt(r.recruit, p, 6);
       logPlaythroughEvent(
         gameDate: date,
-        type: PlaythroughEventType.recruitJoined,
+        type: PlaythroughEventType.memberJoined,
         data: {
+          'memberId': r.recruit.id,
+          'memberName': r.recruit.name,
+          'joinMethod': 'standard_recruitment',
+          'initialRole': r.recruit.sleeperAgent ? 'sleeper' : 'active',
           'recruiterId': p.id,
           'recruiterName': p.name,
-          'recruitId': r.recruit.id,
-          'recruitName': r.recruit.name,
-          'sleeperAgent': r.recruit.sleeperAgent,
         },
       );
 

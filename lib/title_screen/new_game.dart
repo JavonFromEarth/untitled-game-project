@@ -445,6 +445,25 @@ Future<void> makeCharacter() async {
     type: PlaythroughEventType.campaignFounded,
     data: {'founderId': founder.id, 'founderName': founder.name},
   );
+  for (Creature member in pool.where(
+    (c) =>
+        c.id != founder.id &&
+        c.hireId == founder.id &&
+        c.align == Alignment.liberal,
+  )) {
+    logPlaythroughEvent(
+      gameDate: gameState.date,
+      type: PlaythroughEventType.memberJoined,
+      data: {
+        'memberId': member.id,
+        'memberName': member.name,
+        'joinMethod': 'campaign_origin',
+        'initialRole': member.sleeperAgent ? 'sleeper' : 'active',
+        'recruiterId': founder.id,
+        'recruiterName': founder.name,
+      },
+    );
+  }
 }
 
 Future<void> aNewConservativeEra() async {

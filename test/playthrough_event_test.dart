@@ -48,4 +48,13 @@ void main() {
       PlaythroughEventType.campaignFounded,
     );
   });
+
+  test('memberJoined uses stable wire name', () {
+    expect(PlaythroughEventType.memberJoined.wireName, 'member_joined');
+
+    expect(
+      PlaythroughEventType.fromWireName('member_joined'),
+      PlaythroughEventType.memberJoined,
+    );
+  });
 }
