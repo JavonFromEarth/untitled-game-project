@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:lcs_new_age/playthrough_log/campaign_history_archive.dart';
 import 'package:lcs_new_age/saveload/save_load.dart';
 import 'package:lcs_new_age/saveload/storage/game_storage.dart';
 import 'package:path/path.dart';
@@ -9,22 +10,26 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Native backend backed by a single sembast database with one store holding
-/// one record per save, keyed by gameId.
+/// Native database with separate stores for playable saves and completed archives.
 class SembastStorage implements GameStorage {
+  SembastStorage({this.databasePath});
+
+  /// Optional location for isolated databases, including storage tests.
+  final String? databasePath;
   static const String _dbName = 'lcs_new_age.db';
   static const String _storeName = 'saves';
   static const int _version = 1;
 
   Database? _db;
   final _store = stringMapStoreFactory.store(_storeName);
+  final _archives = stringMapStoreFactory.store('campaignArchives');
 
   Database get _database => _db!;
 
   @override
   Future<void> init() async {
-    final appDataDir = await _getAppDataDirectory();
-    final dbPath = join(appDataDir.path, _dbName);
+    final dbPath =
+        databasePath ?? join((await _getAppDataDirectory()).path, _dbName);
     _db = await databaseFactoryIo.openDatabase(dbPath, version: _version);
   }
 
@@ -74,6 +79,33 @@ class SembastStorage implements GameStorage {
   Future<void> deleteGame(String gameId) async {
     await _store.record(gameId).delete(_database);
   }
+
+  @override
+  Future<ArchiveWriteResult> saveArchive(CampaignHistoryArchive archive) async {
+    final serialized = jsonEncode(archive.toJson());
+    return _database.transaction((txn) async {
+      final record = _archives.record(archive.archiveId);
+      final existing = await record.get(txn);
+      if (existing != null) {
+        verifyExistingArchive(existing['data']! as String, archive);
+        return ArchiveWriteResult.alreadyExists;
+      }
+      await record.put(txn, {'data': serialized});
+      return ArchiveWriteResult.created;
+    });
+  }
+
+  @override
+  Future<CampaignHistoryArchive?> loadArchive(String archiveId) async {
+    final record = await _archives.record(archiveId).get(_database);
+    if (record == null) return null;
+    return CampaignHistoryArchive.fromJson(
+      jsonDecode(record['data']! as String) as Map<String, dynamic>,
+    );
+  }
+
+  @override
+  Future<List<String>> listArchiveIds() => _archives.findKeys(_database);
 
   @override
   Future<void> close() async {
