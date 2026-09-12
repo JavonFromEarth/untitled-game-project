@@ -57,4 +57,15 @@ void main() {
       PlaythroughEventType.memberJoined,
     );
   });
+  test('leadershipSucceeded uses stable wire name', () {
+    expect(
+      PlaythroughEventType.leadershipSucceeded.wireName,
+      'leadership_succeeded',
+    );
+
+    expect(
+      PlaythroughEventType.fromWireName('leadership_succeeded'),
+      PlaythroughEventType.leadershipSucceeded,
+    );
+  });
 }

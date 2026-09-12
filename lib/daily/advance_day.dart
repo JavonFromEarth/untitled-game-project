@@ -25,6 +25,8 @@ import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/monthly/advance_month.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
 import 'package:lcs_new_age/newspaper/run_news_cycle.dart';
+import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
+import 'package:lcs_new_age/playthrough_log/playthrough_log.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/saveload/save_load.dart';
@@ -662,6 +664,17 @@ Future<Creature?> _promoteSubordinates(Creature cr) async {
     await getKey();
 
     cr.hireId = newboss.id; // Make dead founder not founder.
+    logPlaythroughEvent(
+      gameDate: date,
+      type: PlaythroughEventType.leadershipSucceeded,
+      data: {
+        'previousLeaderId': cr.id,
+        'previousLeaderName': cr.name,
+        'newLeaderId': newboss.id,
+        'newLeaderName': newboss.name,
+        'reason': 'death',
+      },
+    );
   }
   return newboss;
 }
