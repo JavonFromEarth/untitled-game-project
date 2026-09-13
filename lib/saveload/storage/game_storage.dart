@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:lcs_new_age/playthrough_log/campaign_history_archive.dart';
 import 'package:lcs_new_age/saveload/save_load.dart';
+import 'package:lcs_new_age/scores/score_book.dart';
 
 enum ArchiveWriteResult { created, alreadyExists }
 
@@ -26,6 +27,12 @@ void verifyExistingArchive(String storedJson, CampaignHistoryArchive archive) {
 }
 
 abstract class GameStorage {
+  Future<ScoreBook?> loadScoreBook();
+
+  /// Runs a synchronous read/modify/write under a database transaction.
+  /// Throwing from update must leave the stored book unchanged.
+  Future<void> updateScoreBook(ScoreBook Function(ScoreBook? existing) update);
+
   /// Insert only. An identical retry succeeds; different contents conflict.
   Future<ArchiveWriteResult> saveArchive(CampaignHistoryArchive archive);
 

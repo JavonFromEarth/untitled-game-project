@@ -21,6 +21,7 @@ import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/politics/views.dart';
 import 'package:lcs_new_age/saveload/storage/game_storage.dart';
 import 'package:lcs_new_age/saveload/storage/storage_factory.dart';
+import 'package:lcs_new_age/scores/score_repository.dart';
 import 'package:lcs_new_age/title_screen/launch_game.dart';
 import 'package:lcs_new_age/title_screen/title_screen.dart';
 import 'package:lcs_new_age/utils/colors.dart';
@@ -30,6 +31,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'save_load.g.dart';
 
 late GameStorage _storage;
+late ScoreRepository scoreRepository;
 
 Future<void> initStorage() async {
   _storage = createGameStorage();
@@ -37,6 +39,8 @@ Future<void> initStorage() async {
 
   // Check if we've already migrated
   final prefs = await SharedPreferences.getInstance();
+  scoreRepository = ScoreRepository(_storage);
+  await scoreRepository.initialize(prefs);
   final bool hasMigrated = prefs.getBool('has_migrated_to_indexeddb') ?? false;
 
   if (!hasMigrated) {

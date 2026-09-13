@@ -5,6 +5,7 @@ import 'package:idb_shim/idb_browser.dart';
 import 'package:lcs_new_age/playthrough_log/campaign_history_archive.dart';
 import 'package:lcs_new_age/saveload/save_load.dart';
 import 'package:lcs_new_age/saveload/storage/game_storage.dart';
+import 'package:lcs_new_age/scores/score_book.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// IndexedDB database with separate stores for playable saves and completed archives.
@@ -15,11 +16,48 @@ class WebStorage implements GameStorage {
   static const String _dbName = 'lcs_new_age';
   static const String _storeName = 'saves';
   static const String _archiveStoreName = 'campaignArchives';
-  static const int _version = 2;
+  static const String _scoreStoreName = 'scores';
+  static const int _version = 3;
 
   Database? _db;
 
   Database get _database => _db!;
+
+  @override
+  Future<ScoreBook?> loadScoreBook() async {
+    final txn = _database.transaction(_scoreStoreName, idbModeReadOnly);
+    final raw = await txn.objectStore(_scoreStoreName).getObject('book');
+    await txn.completed;
+    return raw == null
+        ? null
+        : ScoreBook.fromJson(jsonDecode(raw as String) as Map<String, dynamic>);
+  }
+
+  @override
+  Future<void> updateScoreBook(
+    ScoreBook Function(ScoreBook? existing) update,
+  ) async {
+    final txn = _database.transaction(_scoreStoreName, idbModeReadWrite);
+    final store = txn.objectStore(_scoreStoreName);
+    try {
+      final raw = await store.getObject('book');
+      final book = raw == null
+          ? null
+          : ScoreBook.fromJson(
+              jsonDecode(raw as String) as Map<String, dynamic>,
+            );
+      await store.put(jsonEncode(update(book).toJson()), 'book');
+    } catch (_) {
+      txn.abort();
+      try {
+        await txn.completed;
+      } catch (_) {
+        // Preserve the original parse, conflict or write error.
+      }
+      rethrow;
+    }
+    await txn.completed;
+  }
 
   @override
   Future<void> init() async {
@@ -34,6 +72,9 @@ class WebStorage implements GameStorage {
         }
         if (!db.objectStoreNames.contains(_archiveStoreName)) {
           db.createObjectStore(_archiveStoreName);
+        }
+        if (!db.objectStoreNames.contains(_scoreStoreName)) {
+          db.createObjectStore(_scoreStoreName);
         }
       },
     );

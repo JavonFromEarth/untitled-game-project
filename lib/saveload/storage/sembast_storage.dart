@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:lcs_new_age/playthrough_log/campaign_history_archive.dart';
 import 'package:lcs_new_age/saveload/save_load.dart';
 import 'package:lcs_new_age/saveload/storage/game_storage.dart';
+import 'package:lcs_new_age/scores/score_book.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
@@ -23,8 +24,34 @@ class SembastStorage implements GameStorage {
   Database? _db;
   final _store = stringMapStoreFactory.store(_storeName);
   final _archives = stringMapStoreFactory.store('campaignArchives');
+  final _scores = stringMapStoreFactory.store('scores').record('book');
 
   Database get _database => _db!;
+
+  @override
+  Future<ScoreBook?> loadScoreBook() async {
+    final record = await _scores.get(_database);
+    return record == null
+        ? null
+        : ScoreBook.fromJson(
+            jsonDecode(record['data']! as String) as Map<String, dynamic>,
+          );
+  }
+
+  @override
+  Future<void> updateScoreBook(
+    ScoreBook Function(ScoreBook? existing) update,
+  ) async {
+    await _database.transaction((txn) async {
+      final record = await _scores.get(txn);
+      final book = record == null
+          ? null
+          : ScoreBook.fromJson(
+              jsonDecode(record['data']! as String) as Map<String, dynamic>,
+            );
+      await _scores.put(txn, {'data': jsonEncode(update(book).toJson())});
+    });
+  }
 
   @override
   Future<void> init() async {
