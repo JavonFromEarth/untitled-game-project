@@ -5,8 +5,11 @@ import 'package:collection/collection.dart';
 import 'package:lcs_new_age/gamestate/game_state.dart';
 import 'package:lcs_new_age/playthrough_log/campaign_history_archive.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
+import 'package:lcs_new_age/playthrough_log/terminal_save.dart';
 import 'package:lcs_new_age/saveload/save_load.dart';
 import 'package:lcs_new_age/saveload/storage/game_storage.dart';
+import 'package:lcs_new_age/scores/high_score.dart';
+import 'package:lcs_new_age/title_screen/game_over.dart';
 import 'package:lcs_new_age/title_screen/title_screen.dart';
 
 class CampaignCompletionConflict implements Exception {
@@ -25,6 +28,7 @@ Future<CampaignHistoryArchive> prepareCampaignCompletion({
   required GameStorage storage,
   required CampaignOutcome outcome,
   required CampaignEndRoute route,
+  required Ending presentationEnding,
   Map<String, dynamic> terminalContext = const {},
 }) async {
   final result = <String, dynamic>{
@@ -32,6 +36,8 @@ Future<CampaignHistoryArchive> prepareCampaignCompletion({
     'route': route.wireName,
     // Detach the caller's nested context before the first asynchronous step.
     'context': jsonDecode(jsonEncode(terminalContext)),
+    // Score/UI metadata, separate from the factual archive terminalResult.
+    'presentationEnding': presentationEnding.scoreWireName,
   };
   PlaythroughEvent? terminal;
   int previousSequence = 0;
@@ -51,10 +57,15 @@ Future<CampaignHistoryArchive> prepareCampaignCompletion({
     throw CampaignCompletionConflict('Negative history sequence');
   }
   if (terminal != null) {
+    final inspection = inspectTerminalSave(state);
+    if (inspection is InvalidTerminalSave) {
+      throw CampaignCompletionConflict(inspection.message);
+    }
     final recordedResult = {
       'outcome': terminal.data['outcome'],
       'route': terminal.data['route'],
       'context': terminal.data['context'],
+      'presentationEnding': terminal.data['presentationEnding'],
     };
     if (!const DeepCollectionEquality().equals(recordedResult, result) ||
         terminal.sequence != state.playthroughSequence ||

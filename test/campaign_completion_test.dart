@@ -13,6 +13,7 @@ import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 import 'package:lcs_new_age/saveload/save_load.dart';
 import 'package:lcs_new_age/saveload/storage/game_storage.dart';
 import 'package:lcs_new_age/saveload/storage/sembast_storage.dart';
+import 'package:lcs_new_age/title_screen/game_over.dart';
 
 import 'archive_test_support.dart';
 import 'test_support.dart';
@@ -41,12 +42,14 @@ void main() {
   Future<CampaignHistoryArchive> prepare({
     CampaignOutcome outcome = CampaignOutcome.defeat,
     CampaignEndRoute route = CampaignEndRoute.noQualifyingMembers,
+    Ending presentationEnding = Ending.policeSiege,
     Map<String, dynamic> context = const {},
   }) => prepareCampaignCompletion(
     state: state,
     storage: storage,
     outcome: outcome,
     route: route,
+    presentationEnding: presentationEnding,
     terminalContext: context,
   );
 
@@ -68,6 +71,7 @@ void main() {
       expect(state.playthroughEvents, hasLength(3));
       final terminal = state.playthroughEvents.last;
       expect(terminal.type, PlaythroughEventType.campaignEnded);
+      expect(terminal.data['presentationEnding'], 'police_siege');
       expect(terminal.sequence, 9);
       expect(state.playthroughSequence, 9);
       expect(archive.archiveId, terminal.data['archiveId']);
@@ -121,6 +125,12 @@ void main() {
       );
       storage.operations.clear();
       for (final request in [
+        () => prepare(
+          presentationEnding: Ending.executed,
+          context: {
+            'details': ['original'],
+          },
+        ),
         () => prepare(
           outcome: CampaignOutcome.victory,
           context: {

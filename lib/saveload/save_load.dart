@@ -15,13 +15,17 @@ import 'package:lcs_new_age/location/district.dart';
 import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
+import 'package:lcs_new_age/playthrough_log/campaign_completion.dart';
+import 'package:lcs_new_age/playthrough_log/campaign_finalization.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_log.dart';
+import 'package:lcs_new_age/playthrough_log/terminal_save.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/politics/views.dart';
 import 'package:lcs_new_age/saveload/storage/game_storage.dart';
 import 'package:lcs_new_age/saveload/storage/storage_factory.dart';
 import 'package:lcs_new_age/scores/score_repository.dart';
+import 'package:lcs_new_age/title_screen/high_scores.dart';
 import 'package:lcs_new_age/title_screen/launch_game.dart';
 import 'package:lcs_new_age/title_screen/title_screen.dart';
 import 'package:lcs_new_age/utils/colors.dart';
@@ -275,16 +279,70 @@ if (selectedSave.gameState != null) {
   }
 }
 
-Future<bool> loadGameFromSave(SaveFile selectedSave) async {
-  if (selectedSave.gameState == null) {
-    debugPrint("Generating crash report from ${selectedSave.version}");
-    gameState = GameState.fromJson(selectedSave.saveData);
-  } else {
-    debugPrint("Loading game from ${selectedSave.version}");
-    gameState = selectedSave.gameState!;
+/// Only ordinary saves return true. Optional callbacks isolate console UI and
+/// gameplay repair in tests without changing title-screen navigation.
+Future<bool> loadGameFromSave(
+  SaveFile selectedSave, {
+  Future<void> Function(GameState, String)? terminalRecovery,
+  Future<void> Function(Object)? recoveryError,
+  void Function(String)? repair,
+}) async {
+  try {
+    if (selectedSave.gameState == null) {
+      debugPrint("Generating crash report from ${selectedSave.version}");
+      gameState = GameState.fromJson(selectedSave.saveData);
+    } else {
+      debugPrint("Loading game from ${selectedSave.version}");
+      gameState = selectedSave.gameState!;
+    }
+  } catch (error) {
+    if (!hasSerializedTerminalMarker(selectedSave.saveData)) rethrow;
+    await (recoveryError ?? _showRecoveryError)(error);
+    throw EndGameException();
   }
-  applyBugFixes(selectedSave.version);
+  final terminal = inspectTerminalSave(
+    gameState,
+    saveGameId: selectedSave.gameId,
+  );
+  if (terminal is! OrdinarySave) {
+    try {
+      if (terminal is InvalidTerminalSave) {
+        throw CampaignCompletionConflict(terminal.message);
+      }
+      await (terminalRecovery ?? _recoverTerminalSave)(
+        gameState,
+        selectedSave.gameId,
+      );
+    } catch (error) {
+      await (recoveryError ?? _showRecoveryError)(error);
+    }
+    // Both load menus must unwind to title, never report a playable load.
+    throw EndGameException();
+  }
+  (repair ?? applyBugFixes)(selectedSave.version);
   return true;
+}
+
+Future<void> _recoverTerminalSave(GameState state, String saveGameId) async {
+  final result = await recoverCampaignCompletion(
+    state: state,
+    saveGameId: saveGameId,
+    storage: _storage,
+    scores: scoreRepository,
+  );
+  await viewHighScores(result.receipt.score);
+}
+
+Future<void> _showRecoveryError(Object error) async {
+  erase();
+  mvaddstrc(1, 1, lightGray, 'Campaign completion could not finish.');
+  mvaddstr(3, 1, error.toString());
+  mvaddstr(
+    5,
+    1,
+    'The campaign will not resume. Press any key to return to title.',
+  );
+  await getKey();
 }
 
 Future<void> deleteSave(SaveFile selectedSave) async {
