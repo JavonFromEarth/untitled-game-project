@@ -14,9 +14,7 @@ import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/politics/politics.dart';
 import 'package:lcs_new_age/politics/states.dart';
 import 'package:lcs_new_age/politics/views.dart';
-import 'package:lcs_new_age/saveload/save_load.dart';
-import 'package:lcs_new_age/title_screen/game_over.dart';
-import 'package:lcs_new_age/title_screen/high_scores.dart';
+import 'package:lcs_new_age/title_screen/campaign_ending.dart';
 import 'package:lcs_new_age/utils/colors.dart';
 import 'package:lcs_new_age/utils/lcsrandom.dart';
 
@@ -287,8 +285,9 @@ Future<void> tryToRepealConstitution() async {
     }
 
     //REAGANIFY
-    HighScore yourScore;
-    if (canSeeThings) {
+    final reason = cantSeeReason;
+    final ending = CampaignEnding.constitutionRepealed(reason);
+    if (reason == CantSeeReason.none) {
       execName[Exec.president] = FullName("Ronald", "", "Reagan", Gender.male);
       execName[Exec.vicePresident] = FullName(
         "Strom",
@@ -311,78 +310,74 @@ Future<void> tryToRepealConstitution() async {
       for (Exec e in exec.keys) {
         exec[e] = DeepAlignment.archConservative;
       }
-
-      await liberalAgenda(AgendaVibe.conservativeVictory);
-      yourScore = await saveHighScore(Ending.reaganified);
-    } else {
-      switch (cantSeeReason) {
-        case CantSeeReason.dating:
-          //DATING AND REAGANIFIED
-          await defeatMessages(
-            "You went on vacation when the country was on the verge of collapse.",
-            "The Conservatives have made the world in their image.",
-            "They'll round up the last of you eventually.  All is lost.",
-            gentle:
-                "The Arch-Conservative Amendment passed while you were on vacation.",
-          );
-          yourScore = await saveHighScore(Ending.dating);
-        case CantSeeReason.hiding:
-          //HIDING AND REAGANIFIED
-          await defeatMessages(
-            "You went into hiding when the country was on the verge of collapse.",
-            "The Conservatives have made the world in their image.",
-            "They'll round the last of you up eventually.  All is lost.",
-            gentle:
-                "The Arch-Conservative Amendment passed while you were in hiding.",
-          );
-          yourScore = await saveHighScore(Ending.hiding);
-        case CantSeeReason.prison:
-          //IF YOU ARE ALL IN PRISON, JUST PASS AWAY QUIETLY
-          await defeatMessages(
-            "While you were on the inside, the country degenerated...",
-            "Your kind are never released these days.",
-            "Ain't no sunshine...",
-            gentle:
-                "The Arch-Conservative Amendment passed while you were in prison.",
-          );
-          yourScore = await saveHighScore(Ending.prison);
-        case CantSeeReason.disbanded:
-          //DISBANDED AND REAGANIFIED
-          await defeatMessages(
-            "You just watched it happen as the country collapsed without you.",
-            "Freedom, equality, justice... they're just words now.",
-            "The world grows dark...",
-            gentle:
-                "The Arch-Conservative Amendment passed after the LCS disbanded.",
-          );
-          yourScore = await saveHighScore(Ending.disbandLoss);
-        case CantSeeReason.hospital:
-          //HOSPITALIZED AND REAGANIFIED
-          await defeatMessages(
-            "You were in a coma when the country was on the verge of collapse.",
-            "They don't bring folks like you back anymore.",
-            "The world is fading with you...",
-            gentle:
-                "The Arch-Conservative Amendment passed while you were in the hospital.",
-          );
-          yourScore = await saveHighScore(Ending.reaganified);
-        case CantSeeReason.other:
-        case CantSeeReason.none:
-          //OTHER AND REAGANIFIED
-          await defeatMessages(
-            "You weren't there when the country was on the verge of collapse.",
-            "The Conservatives have made the world in their image.",
-            "They'll round the last of you up eventually.  All is lost.",
-            gentle:
-                "The Arch-Conservative Amendment passed while you were away.",
-          );
-          yourScore = await saveHighScore(Ending.reaganified);
-      }
     }
 
-    await deleteSaveGame();
-    await viewHighScores(yourScore);
-    endGame();
+    await completeCampaignEnding(
+      ending,
+      presentEnding: () async {
+        if (reason == CantSeeReason.none) {
+          await liberalAgenda(AgendaVibe.conservativeVictory);
+          return;
+        }
+        switch (reason) {
+          case CantSeeReason.dating:
+            //DATING AND REAGANIFIED
+            await defeatMessages(
+              "You went on vacation when the country was on the verge of collapse.",
+              "The Conservatives have made the world in their image.",
+              "They'll round up the last of you eventually.  All is lost.",
+              gentle:
+                  "The Arch-Conservative Amendment passed while you were on vacation.",
+            );
+          case CantSeeReason.hiding:
+            //HIDING AND REAGANIFIED
+            await defeatMessages(
+              "You went into hiding when the country was on the verge of collapse.",
+              "The Conservatives have made the world in their image.",
+              "They'll round the last of you up eventually.  All is lost.",
+              gentle:
+                  "The Arch-Conservative Amendment passed while you were in hiding.",
+            );
+          case CantSeeReason.prison:
+            //IF YOU ARE ALL IN PRISON, JUST PASS AWAY QUIETLY
+            await defeatMessages(
+              "While you were on the inside, the country degenerated...",
+              "Your kind are never released these days.",
+              "Ain't no sunshine...",
+              gentle:
+                  "The Arch-Conservative Amendment passed while you were in prison.",
+            );
+          case CantSeeReason.disbanded:
+            //DISBANDED AND REAGANIFIED
+            await defeatMessages(
+              "You just watched it happen as the country collapsed without you.",
+              "Freedom, equality, justice... they're just words now.",
+              "The world grows dark...",
+              gentle:
+                  "The Arch-Conservative Amendment passed after the LCS disbanded.",
+            );
+          case CantSeeReason.hospital:
+            //HOSPITALIZED AND REAGANIFIED
+            await defeatMessages(
+              "You were in a coma when the country was on the verge of collapse.",
+              "They don't bring folks like you back anymore.",
+              "The world is fading with you...",
+              gentle:
+                  "The Arch-Conservative Amendment passed while you were in the hospital.",
+            );
+          case CantSeeReason.other:
+          case CantSeeReason.none:
+            //OTHER AND REAGANIFIED
+            await defeatMessages(
+              "You weren't there when the country was on the verge of collapse.",
+              "The Conservatives have made the world in their image.",
+              "They'll round the last of you up eventually.  All is lost.",
+              gentle:
+                  "The Arch-Conservative Amendment passed while you were away.",
+            );
+        }
+      },
+    );
   } else {
     if (canSeeThings) {
       mvaddstr(

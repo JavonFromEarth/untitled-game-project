@@ -26,10 +26,9 @@ import 'package:lcs_new_age/politics/elections.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/politics/supreme_court.dart';
 import 'package:lcs_new_age/politics/views.dart';
-import 'package:lcs_new_age/saveload/save_load.dart';
 import 'package:lcs_new_age/sitemode/sitemap.dart';
+import 'package:lcs_new_age/title_screen/campaign_ending.dart';
 import 'package:lcs_new_age/title_screen/game_over.dart';
-import 'package:lcs_new_age/title_screen/high_scores.dart';
 import 'package:lcs_new_age/utils/colors.dart';
 import 'package:lcs_new_age/utils/lcsrandom.dart';
 
@@ -235,17 +234,16 @@ Future<void> advanceMonth() async {
 
   //CONTROL LONG DISBANDS
   if (disbanding && year - disbandTime >= 50) {
-    await defeatMessages(
-      "The Liberal Crime Squad is now just a memory.",
-      "The last LCS members have all been hunted down.",
-      "They will never see the utopia they dreamed of...",
-      gentle:
-          "The Liberal Crime Squad faded into history, its work unfinished.",
+    await completeCampaignEnding(
+      CampaignEnding.prolongedDisbanding,
+      presentEnding: () => defeatMessages(
+        "The Liberal Crime Squad is now just a memory.",
+        "The last LCS members have all been hunted down.",
+        "They will never see the utopia they dreamed of...",
+        gentle:
+            "The Liberal Crime Squad faded into history, its work unfinished.",
+      ),
     );
-    HighScore yourScore = await saveHighScore(Ending.disbandLoss);
-    await deleteSaveGame();
-    await viewHighScores(yourScore);
-    endGame();
   }
 
   //UPDATE THE WORLD IN CASE THE LAWS HAVE CHANGED
@@ -395,11 +393,12 @@ Future<void> winCheck() async {
   if (summarizePoliticalBody(senate)[4] <= senate.length / 2) return;
   if (exec.values.any((e) => e != DeepAlignment.eliteLiberal)) return;
   if (ccsActive) return;
-  await liberalAgenda(AgendaVibe.liberalVictory);
-  await saveHighScore(Ending.victory);
-  await deleteSaveGame();
-  await viewHighScores();
-  endGame();
+  await completeCampaignEnding(
+    CampaignEnding.victory,
+    presentEnding: () async {
+      await liberalAgenda(AgendaVibe.liberalVictory);
+    },
+  );
 }
 
 void renameBuildingsAfterLawChanges(

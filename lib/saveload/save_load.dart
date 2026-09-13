@@ -297,7 +297,7 @@ Future<bool> loadGameFromSave(
     }
   } catch (error) {
     if (!hasSerializedTerminalMarker(selectedSave.saveData)) rethrow;
-    await (recoveryError ?? _showRecoveryError)(error);
+    await (recoveryError ?? showCampaignCompletionError)(error);
     throw EndGameException();
   }
   final terminal = inspectTerminalSave(
@@ -314,7 +314,7 @@ Future<bool> loadGameFromSave(
         selectedSave.gameId,
       );
     } catch (error) {
-      await (recoveryError ?? _showRecoveryError)(error);
+      await (recoveryError ?? showCampaignCompletionError)(error);
     }
     // Both load menus must unwind to title, never report a playable load.
     throw EndGameException();
@@ -333,7 +333,7 @@ Future<void> _recoverTerminalSave(GameState state, String saveGameId) async {
   await viewHighScores(result.receipt.score);
 }
 
-Future<void> _showRecoveryError(Object error) async {
+Future<void> showCampaignCompletionError(Object error) async {
   erase();
   mvaddstrc(1, 1, lightGray, 'Campaign completion could not finish.');
   mvaddstr(3, 1, error.toString());
