@@ -8,7 +8,8 @@ enum PlaythroughEventType {
   campaignEnded('campaign_ended'),
   financialPeriodClosed('financial_period_closed'),
   businessFrontEstablished('business_front_established'),
-  compoundUpgradeInstalled('compound_upgrade_installed');
+  compoundUpgradeInstalled('compound_upgrade_installed'),
+  datingContactEstablished('dating_contact_established');
 
   const PlaythroughEventType(this.wireName);
 

@@ -2,6 +2,47 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 
 void main() {
+  test('dating contact has a stable wire and round trips', () {
+    final json = <String, dynamic>{
+      'gameId': 123,
+      'seq': 2,
+      'realTime': '2026-09-13T00:00:00.000Z',
+      'gameDate': '2023-02-01T00:00:00.000',
+      'type': 'dating_contact_established',
+      'actorId': 1,
+      'personId': 2,
+      'contactKind': 'dating',
+    };
+    final event = PlaythroughEvent.fromJson(json);
+    expect(event.type, PlaythroughEventType.datingContactEstablished);
+    expect(event.toJson(), json);
+  });
+
+  for (final type in ['member_joined', 'recruit_joined']) {
+    test('legacy $type requires no new type or provenance fields', () {
+      final json = <String, dynamic>{
+        'gameId': 123,
+        'seq': 1,
+        'realTime': '2026-09-13T00:00:00.000Z',
+        'gameDate': '2023-02-01T00:00:00.000',
+        'type': type,
+        if (type == 'member_joined') ...{
+          'memberId': 2,
+          'memberName': 'Old member',
+          'joinMethod': 'standard_recruitment',
+          'initialRole': 'active',
+        } else ...{
+          'recruitId': 2,
+          'recruitName': 'Old recruit',
+          'sleeperAgent': false,
+        },
+        'recruiterId': 1,
+        'recruiterName': 'Old recruiter',
+      };
+      expect(PlaythroughEvent.fromJson(json).toJson(), json);
+    });
+  }
+
   for (final entry in {
     PlaythroughEventType.financialPeriodClosed: 'financial_period_closed',
     PlaythroughEventType.businessFrontEstablished: 'business_front_established',

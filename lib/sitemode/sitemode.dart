@@ -24,6 +24,7 @@ import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/siege.dart';
 import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
+import 'package:lcs_new_age/playthrough_log/member_history.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/sitemode/advance.dart';
@@ -843,32 +844,9 @@ Future<void> _siteModeAux() async {
             followers++;
             freed = true;
 
-            if (partysize < 6) {
-              Creature? recruiter;
-              // Check for people who can recruit followers
-              for (Creature p in squad) {
-                if (p.subordinatesLeft > 0) {
-                  recruiter = p;
-                  break;
-                }
-              }
-              // If someone can, add this person as a newly recruited Liberal!
-              if (recruiter != null) {
-                Creature newcr = e;
-                newcr.nameCreature();
-
-                newcr.location = recruiter.location;
-                newcr.base = recruiter.base;
-                newcr.hireId = recruiter.id;
-
-                pool.add(newcr);
-                stats.recruits++;
-
-                newcr.squad = activeSquad;
-
-                actgot++;
-                partysize++;
-              }
+            if (partysize < 6 && recruitFreedPerson(e)) {
+              actgot++;
+              partysize++;
             }
             encounter.remove(e);
           }
@@ -2131,6 +2109,45 @@ Future<void> _openDoor(bool restricted) async {
       await getKey();
     }
   }
+}
+
+/// Membership part of the free-person action. The squad frees the person;
+/// the first member with capacity recruits them, not necessarily rescues them.
+bool recruitFreedPerson(Creature person) {
+  if (squad.length >= 6 || pool.contains(person)) return false;
+  final recruiter = squad.firstWhereOrNull((p) => p.subordinatesLeft > 0);
+  if (recruiter == null) return false;
+  final sourceSite = historySiteSnapshot(activeSite);
+  final category = switch (person.typeId) {
+    CreatureTypeIds.sweatshopWorker => 'sweatshop_worker',
+    CreatureTypeIds.childLaborer => 'child_laborer',
+    CreatureTypeIds.servant => 'servant',
+    _ when person.name == 'Prisoner' => 'prisoner',
+    _ => null,
+  };
+  final liberation = {
+    if (category != null) 'category': category,
+    'encounterName': person.name,
+    'squadId': activeSquad!.id,
+    'squadName': activeSquad!.name,
+  };
+  person.nameCreature();
+  person.location = recruiter.location;
+  person.base = recruiter.base;
+  person.hireId = recruiter.id;
+  pool.add(person);
+  stats.recruits++;
+  person.squad = activeSquad;
+  recordMemberJoined(
+    member: person,
+    recruiter: recruiter,
+    method: MemberJoinMethod.siteRescue,
+    provenance: {
+      if (sourceSite != null) 'sourceSite': sourceSite,
+      'liberation': liberation,
+    },
+  );
+  return true;
 }
 
 Future<void> squadCleanup() async {

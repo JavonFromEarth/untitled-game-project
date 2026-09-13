@@ -9,8 +9,7 @@ import 'package:lcs_new_age/engine/engine.dart';
 import 'package:lcs_new_age/gamestate/game_state.dart';
 import 'package:lcs_new_age/gamestate/ledger.dart';
 import 'package:lcs_new_age/location/site.dart';
-import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
-import 'package:lcs_new_age/playthrough_log/playthrough_log.dart';
+import 'package:lcs_new_age/playthrough_log/member_history.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/politics/politics.dart';
@@ -239,17 +238,10 @@ Future<bool> completeRecruitMeeting(RecruitmentSession r, Creature p) async {
       pool.add(r.recruit);
       erase();
       await sleeperizePrompt(r.recruit, p, 6);
-      logPlaythroughEvent(
-        gameDate: date,
-        type: PlaythroughEventType.memberJoined,
-        data: {
-          'memberId': r.recruit.id,
-          'memberName': r.recruit.name,
-          'joinMethod': 'standard_recruitment',
-          'initialRole': r.recruit.sleeperAgent ? 'sleeper' : 'active',
-          'recruiterId': p.id,
-          'recruiterName': p.name,
-        },
+      recordMemberJoined(
+        member: r.recruit,
+        recruiter: p,
+        method: MemberJoinMethod.standardRecruitment,
       );
 
       p.train(Skill.persuasion, 25);

@@ -15,6 +15,7 @@ import 'package:lcs_new_age/items/item_type.dart';
 import 'package:lcs_new_age/location/city.dart';
 import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/site.dart';
+import 'package:lcs_new_age/playthrough_log/member_history.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_log.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
@@ -451,17 +452,10 @@ Future<void> makeCharacter() async {
         c.hireId == founder.id &&
         c.align == Alignment.liberal,
   )) {
-    logPlaythroughEvent(
-      gameDate: gameState.date,
-      type: PlaythroughEventType.memberJoined,
-      data: {
-        'memberId': member.id,
-        'memberName': member.name,
-        'joinMethod': 'campaign_origin',
-        'initialRole': member.sleeperAgent ? 'sleeper' : 'active',
-        'recruiterId': founder.id,
-        'recruiterName': founder.name,
-      },
+    recordMemberJoined(
+      member: member,
+      recruiter: founder,
+      method: MemberJoinMethod.campaignOrigin,
     );
   }
 }

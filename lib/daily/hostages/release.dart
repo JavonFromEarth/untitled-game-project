@@ -9,6 +9,7 @@ import 'package:lcs_new_age/items/clothing.dart';
 import 'package:lcs_new_age/items/clothing_type.dart';
 import 'package:lcs_new_age/location/siege.dart';
 import 'package:lcs_new_age/location/site.dart';
+import 'package:lcs_new_age/playthrough_log/member_history.dart';
 import 'package:lcs_new_age/utils/colors.dart';
 import 'package:lcs_new_age/utils/lcsrandom.dart';
 
@@ -136,6 +137,11 @@ Future<void> handleRelease(
     cr.sleeperAgent = true;
     liberalize(cr);
     stats.recruits++;
+    recordMemberJoined(
+      member: cr,
+      recruiter: lead,
+      method: MemberJoinMethod.releasedHostageSleeper,
+    );
     await getKey();
   } else {
     // Otherwise they'll be released
