@@ -20,6 +20,7 @@ import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/monthly/lcs_monthly.dart';
 import 'package:lcs_new_age/monthly/sleeper_update.dart';
+import 'package:lcs_new_age/playthrough_log/financial_history.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/congress.dart';
 import 'package:lcs_new_age/politics/elections.dart';
@@ -380,6 +381,7 @@ Future<void> advanceMonth() async {
 
   //FUND REPORTS
   if (canSeeThings) await fundReport(false);
+  logFinancialPeriodClosed();
   ledger.resetMonthlyAmounts();
   if (clearScreenOnNextMessage) erase();
 }

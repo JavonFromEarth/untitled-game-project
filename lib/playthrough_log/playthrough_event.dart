@@ -5,7 +5,10 @@ enum PlaythroughEventType {
   campaignFounded('campaign_founded'),
   leadershipSucceeded('leadership_succeeded'),
   founderBackgroundChoice('founder_background_choice'),
-  campaignEnded('campaign_ended');
+  campaignEnded('campaign_ended'),
+  financialPeriodClosed('financial_period_closed'),
+  businessFrontEstablished('business_front_established'),
+  compoundUpgradeInstalled('compound_upgrade_installed');
 
   const PlaythroughEventType(this.wireName);
 

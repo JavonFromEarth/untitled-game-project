@@ -8,16 +8,21 @@ import 'package:lcs_new_age/politics/laws.dart';
 /// needs to value installed upgrades (e.g. the medical industry liquidating a
 /// dismantled safehouse) read prices from here, so the two can never drift.
 enum CompoundUpgrade {
-  fortify,
-  cameras,
-  boobyTraps,
-  bollards,
-  generator,
-  solarPanels,
-  aaGun,
-  videoRoom,
-  hackerDen,
-  businessFront;
+  fortify('fortification'),
+  cameras('cameras'),
+  boobyTraps('booby_traps'),
+  bollards('bollards'),
+  generator('generator'),
+  solarPanels('solar_panels'),
+  aaGun('aa_gun'),
+  videoRoom('video_room'),
+  hackerDen('hacker_den'),
+  businessFront('business_front');
+
+  const CompoundUpgrade(this.wireName);
+
+  /// Stable Campaign History identity, independent of the Dart enum name.
+  final String wireName;
 
   /// Purchase price in dollars at the current law levels.
   int get price {

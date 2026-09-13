@@ -6,6 +6,8 @@ import 'package:lcs_new_age/gamestate/ledger.dart';
 import 'package:lcs_new_age/location/compound_upgrades.dart';
 import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/site.dart';
+import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
+import 'package:lcs_new_age/playthrough_log/playthrough_log.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/utils/interface_options.dart';
@@ -155,6 +157,7 @@ Future<void> investInLocation(Site loc) async {
         if (!loc.compound.fortified && ledger.funds >= price) {
           ledger.subtractFunds(price, Expense.compoundUpgrades);
           loc.compound.fortified = true;
+          _logUpgradeInstalled(loc, CompoundUpgrade.fortify, price);
         }
       }
       if (c == Key.c) {
@@ -162,6 +165,7 @@ Future<void> investInLocation(Site loc) async {
         if (!loc.compound.cameras && ledger.funds >= price) {
           ledger.subtractFunds(price, Expense.compoundUpgrades);
           loc.compound.cameras = true;
+          _logUpgradeInstalled(loc, CompoundUpgrade.cameras, price);
         }
       }
       if (c == Key.t) {
@@ -169,6 +173,7 @@ Future<void> investInLocation(Site loc) async {
         if (!loc.compound.boobyTraps && ledger.funds >= price) {
           ledger.subtractFunds(price, Expense.compoundUpgrades);
           loc.compound.boobyTraps = true;
+          _logUpgradeInstalled(loc, CompoundUpgrade.boobyTraps, price);
         }
       }
       if (c == Key.b) {
@@ -176,6 +181,7 @@ Future<void> investInLocation(Site loc) async {
         if (!loc.compound.bollards && ledger.funds >= price) {
           ledger.subtractFunds(price, Expense.compoundUpgrades);
           loc.compound.bollards = true;
+          _logUpgradeInstalled(loc, CompoundUpgrade.bollards, price);
         }
       }
       if (c == Key.g) {
@@ -183,6 +189,7 @@ Future<void> investInLocation(Site loc) async {
         if (!loc.compound.generator && ledger.funds >= price) {
           ledger.subtractFunds(price, Expense.compoundUpgrades);
           loc.compound.generator = true;
+          _logUpgradeInstalled(loc, CompoundUpgrade.generator, price);
         }
       }
       if (c == Key.p) {
@@ -192,6 +199,7 @@ Future<void> investInLocation(Site loc) async {
             ledger.funds >= price) {
           ledger.subtractFunds(price, Expense.compoundUpgrades);
           loc.compound.solarPanels = true;
+          _logUpgradeInstalled(loc, CompoundUpgrade.solarPanels, price);
         }
       }
       if (c == Key.a) {
@@ -201,6 +209,7 @@ Future<void> investInLocation(Site loc) async {
             ledger.funds >= price) {
           ledger.subtractFunds(price, Expense.compoundUpgrades);
           loc.compound.aaGun = true;
+          _logUpgradeInstalled(loc, CompoundUpgrade.aaGun, price);
         }
       }
       if (c == Key.v) {
@@ -208,6 +217,7 @@ Future<void> investInLocation(Site loc) async {
         if (!loc.compound.videoRoom && ledger.funds >= price) {
           ledger.subtractFunds(price, Expense.compoundUpgrades);
           loc.compound.videoRoom = true;
+          _logUpgradeInstalled(loc, CompoundUpgrade.videoRoom, price);
         }
       }
       if (c == Key.h) {
@@ -215,6 +225,7 @@ Future<void> investInLocation(Site loc) async {
         if (!loc.compound.hackerDen && ledger.funds >= price) {
           ledger.subtractFunds(price, Expense.compoundUpgrades);
           loc.compound.hackerDen = true;
+          _logUpgradeInstalled(loc, CompoundUpgrade.hackerDen, price);
         }
       }
     }
@@ -259,7 +270,32 @@ Future<void> investInLocation(Site loc) async {
           loc.frontName = long;
           loc.shortName = short;
         } while (sites.where((l) => l.shortName == loc.shortName).length > 1);
+        logPlaythroughEvent(
+          gameDate: date,
+          type: PlaythroughEventType.businessFrontEstablished,
+          data: {
+            'siteId': loc.id,
+            'siteName': loc.name,
+            'frontName': loc.frontName,
+            'price': price,
+            'cityId': loc.cityId,
+            'districtId': loc.districtId,
+          },
+        );
       }
     }
   }
+}
+
+void _logUpgradeInstalled(Site loc, CompoundUpgrade upgrade, int price) {
+  logPlaythroughEvent(
+    gameDate: date,
+    type: PlaythroughEventType.compoundUpgradeInstalled,
+    data: {
+      'siteId': loc.id,
+      'siteName': loc.name,
+      'upgradeId': upgrade.wireName,
+      'price': price,
+    },
+  );
 }

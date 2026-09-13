@@ -2,6 +2,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 
 void main() {
+  for (final entry in {
+    PlaythroughEventType.financialPeriodClosed: 'financial_period_closed',
+    PlaythroughEventType.businessFrontEstablished: 'business_front_established',
+    PlaythroughEventType.compoundUpgradeInstalled: 'compound_upgrade_installed',
+  }.entries) {
+    test('${entry.value} has a stable wire name and round trips', () {
+      final event = PlaythroughEvent(
+        gameId: 123,
+        sequence: 1,
+        realTime: DateTime.utc(2026, 9, 13),
+        gameDate: DateTime(2023, 2, 1),
+        type: entry.key,
+        data: {
+          'snapshot': {'amount': 42},
+        },
+      );
+      expect(event.toJson()['type'], entry.value);
+      final restored = PlaythroughEvent.fromJson(event.toJson());
+      expect(restored.type, entry.key);
+      expect(restored.toJson(), event.toJson());
+    });
+  }
+
   test(
     'campaignEnded uses stable wire name and preserves terminal payload',
     () {
