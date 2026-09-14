@@ -23,6 +23,7 @@ import 'package:lcs_new_age/justice/crimes.dart';
 import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
+import 'package:lcs_new_age/playthrough_log/member_death_history.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/sitemode/haul_kidnap.dart';
 import 'package:lcs_new_age/sitemode/map_specials.dart';
@@ -1160,7 +1161,14 @@ Future<void> hit(
       bool alreadydead = !target.alive;
 
       if (!alreadydead) {
+        final death = MemberDeathRecord.capture(
+          target,
+          MemberDeathCause.combatInjury,
+          sourceSite: mode == GameMode.site ? activeSite : null,
+          actor: a,
+        );
         target.die();
+        death?.record();
 
         int killjuice = 5 + (t.juice / 20).round();
         if ((t.align.index - a.align.index).abs() == 2) {

@@ -1,6 +1,7 @@
 enum PlaythroughEventType {
   recruitJoined('recruit_joined'),
   memberJoined('member_joined'),
+  memberDied('member_died'),
   sleeperReportedIn('sleeper_reported_in'),
   campaignFounded('campaign_founded'),
   leadershipSucceeded('leadership_succeeded'),

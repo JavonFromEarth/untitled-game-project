@@ -11,6 +11,7 @@ import 'package:lcs_new_age/gamestate/game_state.dart';
 import 'package:lcs_new_age/justice/crimes.dart';
 import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
+import 'package:lcs_new_age/playthrough_log/member_death_history.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/sitemode/fight.dart';
 import 'package:lcs_new_age/sitemode/haul_kidnap.dart';
@@ -247,8 +248,9 @@ Future<void> advancecreature(Creature cr) async {
       !oneIn(3) &&
       (levelMap[locx][locy][locz].firePeak ||
           levelMap[locx][locy][locz].fireEnd)) {
-    int burndamage =
-        (levelMap[locx][locy][locz].firePeak) ? lcsRandom(10) : lcsRandom(5);
+    int burndamage = (levelMap[locx][locy][locz].firePeak)
+        ? lcsRandom(10)
+        : lcsRandom(5);
     clearMessageArea();
 
     // Firefighter's bunker gear reduces burn damage
@@ -266,11 +268,20 @@ Future<void> advancecreature(Creature cr) async {
       burndamage = (burndamage * (1 - (3.0 / denom))).floor();
     }
 
+    final bloodBeforeFire = cr.blood;
     cr.blood -= burndamage;
 
     if (cr.blood <= 0) {
+      final death = bloodBeforeFire > 0
+          ? MemberDeathRecord.capture(
+              cr,
+              MemberDeathCause.fire,
+              sourceSite: activeSite,
+            )
+          : null;
       // Blame LCS for fire deaths
       await creatureDie(cr, true);
+      death?.record();
     } else if (burndamage > 0) {
       setColor(darkRed);
       move(9, 1);
@@ -284,6 +295,7 @@ Future<void> advancecreature(Creature cr) async {
   if (bleed > 0) {
     clearMessageArea();
 
+    final bloodBeforeBleeding = cr.blood;
     cr.blood -= bleed;
 
     levelMap[locx][locy][locz].bloody = true;
@@ -291,8 +303,16 @@ Future<void> advancecreature(Creature cr) async {
     cr.equippedClothing?.bloody = true;
 
     if (cr.blood <= 0) {
+      final death = bloodBeforeBleeding > 0
+          ? MemberDeathRecord.capture(
+              cr,
+              MemberDeathCause.bleeding,
+              sourceSite: mode == GameMode.site ? activeSite : null,
+            )
+          : null;
       // Blame LCS for bleeding deaths unless they're liberal or moderate
       await creatureDie(cr, cr.align == Alignment.conservative);
+      death?.record();
     }
   }
 }

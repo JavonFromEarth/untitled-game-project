@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:lcs_new_age/basemode/activities.dart';
 import 'package:lcs_new_age/basemode/blind_time_log.dart';
 import 'package:lcs_new_age/common_actions/common_actions.dart';
@@ -25,6 +26,7 @@ import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/monthly/advance_month.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
 import 'package:lcs_new_age/newspaper/run_news_cycle.dart';
+import 'package:lcs_new_age/playthrough_log/member_death_history.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_log.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
@@ -678,6 +680,10 @@ Future<Creature?> _promoteSubordinates(Creature cr) async {
   return newboss;
 }
 
+/// Narrow test seam for the existing daily healing resolver.
+@visibleForTesting
+Future<void> dailyHealing() => _dailyHealing();
+
 Future<void> _dailyHealing() async {
   // Healing - determine medical support at each location
   Map<Site, int> medical = {}, injuries = {};
@@ -781,7 +787,13 @@ Future<void> _dailyHealing() async {
         }
       }
       if (p.alive && p.blood < 0) {
+        final death = MemberDeathRecord.capture(
+          p,
+          MemberDeathCause.injuries,
+          sourceSite: p.site,
+        );
         p.die();
+        death?.record();
         await showMessageOrLog("${p.name} has died of injuries.");
       }
       for (BodyPart w in p.body.parts) {
