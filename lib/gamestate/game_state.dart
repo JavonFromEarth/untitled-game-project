@@ -105,6 +105,8 @@ class GameState {
 
   // Non-persisting variables (don't include in to/from JSON)
   @JsonKey(includeFromJson: false, includeToJson: false)
+  int? activeOperationStartSequence;
+  @JsonKey(includeFromJson: false, includeToJson: false)
   Squad? get activeSquad =>
       squads.firstWhereOrNull((squad) => squad.id == activeSquadId);
   set activeSquad(Squad? value) => activeSquadId = value?.id ?? -1;

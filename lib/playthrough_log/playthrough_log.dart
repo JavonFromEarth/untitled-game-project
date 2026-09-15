@@ -4,21 +4,22 @@ import 'package:file_saver/file_saver.dart';
 import 'package:lcs_new_age/gamestate/game_state.dart';
 import 'package:lcs_new_age/playthrough_log/playthrough_event.dart';
 
-void logPlaythroughEvent({
+PlaythroughEvent logPlaythroughEvent({
   required DateTime gameDate,
   required PlaythroughEventType type,
   Map<String, dynamic> data = const {},
 }) {
   final event = PlaythroughEvent(
-  gameId: gameState.uniqueGameId,
-  sequence: ++gameState.playthroughSequence,
-  realTime: DateTime.now(),
-  gameDate: gameDate,
-  type: type,
-  data: data,
-);
+    gameId: gameState.uniqueGameId,
+    sequence: ++gameState.playthroughSequence,
+    realTime: DateTime.now(),
+    gameDate: gameDate,
+    type: type,
+    data: data,
+  );
 
   gameState.playthroughEvents.add(event);
+  return event;
 }
 
 String playthroughLogAsJsonl(GameState state) {

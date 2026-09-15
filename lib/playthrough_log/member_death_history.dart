@@ -104,6 +104,8 @@ class MemberDeathRecord {
       'memberTypeId': member.typeId,
       'memberTypeName': member.type.name,
       'cause': cause.wireName,
+      if (gameState.activeOperationStartSequence != null)
+        'operationStartSequence': gameState.activeOperationStartSequence,
       if (site != null) 'sourceSite': site,
       if (context != null) 'context': context,
       if (actor != null &&

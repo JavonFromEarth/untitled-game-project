@@ -10,7 +10,9 @@ enum PlaythroughEventType {
   financialPeriodClosed('financial_period_closed'),
   businessFrontEstablished('business_front_established'),
   compoundUpgradeInstalled('compound_upgrade_installed'),
-  datingContactEstablished('dating_contact_established');
+  datingContactEstablished('dating_contact_established'),
+  operationStarted('operation_started'),
+  operationResolved('operation_resolved');
 
   const PlaythroughEventType(this.wireName);
 

@@ -25,6 +25,7 @@ import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/newspaper/display_news.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
 import 'package:lcs_new_age/playthrough_log/member_death_history.dart';
+import 'package:lcs_new_age/playthrough_log/operation_history.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/politics/views.dart';
@@ -1491,6 +1492,18 @@ enum SallyForthResult { defeated, escaped, brokeSiege }
 
 // Siege -- Mass combat outside safehouse
 Future<SallyForthResult> sallyForthPart3(Site loc) async {
+  final operation = beginOperation(loc, OperationKind.siege);
+  try {
+    return await _sallyForthPart3(loc, operation);
+  } finally {
+    operation?.clear();
+  }
+}
+
+Future<SallyForthResult> _sallyForthPart3(
+  Site loc,
+  OperationHistory? operation,
+) async {
   await reloadparty(false);
   Siege siege = loc.siege;
   activeSite = loc;
@@ -1562,12 +1575,24 @@ Future<SallyForthResult> sallyForthPart3(Site loc) async {
       mvaddstr(16, 1, "You're free!");
       await getKey();
       await escapeSiege(false);
+      operation?.resolve(
+        OperationResolutionPath.siegeEscape,
+        chaseOutcome: outcome,
+      );
       return SallyForthResult.escaped;
     case ChaseOutcome.capture:
       await siegeDefeat();
+      operation?.resolve(
+        OperationResolutionPath.siegeDefeat,
+        chaseOutcome: outcome,
+      );
       return SallyForthResult.defeated;
     case ChaseOutcome.death:
       await checkForDefeat();
+      operation?.resolve(
+        OperationResolutionPath.siegeDefeat,
+        chaseOutcome: outcome,
+      );
       return SallyForthResult.defeated;
     case ChaseOutcome.victory:
       setColor(white);
@@ -1581,6 +1606,10 @@ Future<SallyForthResult> sallyForthPart3(Site loc) async {
       await conquerText();
       await squadCleanup();
       await escapeSiege(true);
+      operation?.resolve(
+        OperationResolutionPath.siegeVictory,
+        chaseOutcome: outcome,
+      );
       return SallyForthResult.brokeSiege;
   }
 }

@@ -25,6 +25,7 @@ import 'package:lcs_new_age/location/siege.dart';
 import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
 import 'package:lcs_new_age/playthrough_log/member_history.dart';
+import 'package:lcs_new_age/playthrough_log/operation_history.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/sitemode/advance.dart';
@@ -181,12 +182,19 @@ Future<void> siteMode(Site loc) async {
     }
   }
 
-  await _siteModeAux();
-
-  encounter.clear();
+  final operation = beginOperation(
+    loc,
+    activeSiteUnderSiege ? OperationKind.siege : OperationKind.siteAction,
+  );
+  try {
+    await _siteModeAux(operation);
+    encounter.clear();
+  } finally {
+    operation?.clear();
+  }
 }
 
-Future<void> _siteModeAux() async {
+Future<void> _siteModeAux(OperationHistory? operation) async {
   int u, x;
   if (activeSquad == null) return;
 
@@ -498,6 +506,11 @@ Future<void> _siteModeAux() async {
 
         mode = GameMode.base;
 
+        operation?.resolve(
+          OperationResolutionPath.squadDestroyed,
+          siteCrime: siteCrime,
+          siteAlarmed: siteAlarm,
+        );
         return;
       }
     }
@@ -1027,6 +1040,7 @@ Future<void> _siteModeAux() async {
         //CHECK FOR EXIT
         if (currentTile.exit ||
             (cbase == activeSite && !activeSiteUnderSiege && bailOnBase)) {
+          final siegeExit = activeSiteUnderSiege;
           //CHASE SEQUENCE OR FOOT CHASE
           chaseSequence = ChaseSequence(activeSite!);
           int level = siteCrime;
@@ -1058,15 +1072,15 @@ Future<void> _siteModeAux() async {
               break;
             }
           }
-          bool gotout = true;
+          ChaseOutcome outcome;
           if (havecar) {
-            gotout = (await carChaseSequence()).won;
+            outcome = await carChaseSequence();
           } else {
-            gotout = (await footChaseSequence()).won;
+            outcome = await footChaseSequence();
           }
 
           //If you survived
-          if (gotout) {
+          if (outcome.won) {
             await squadCleanup();
 
             //END SITE MODE
@@ -1094,6 +1108,16 @@ Future<void> _siteModeAux() async {
               await _resolveSite();
             }
           }
+          operation?.resolve(
+            siegeExit
+                ? (outcome.won
+                      ? OperationResolutionPath.siegeEscape
+                      : OperationResolutionPath.siegeDefeat)
+                : OperationResolutionPath.siteExit,
+            chaseOutcome: outcome,
+            siteCrime: siteCrime,
+            siteAlarmed: siteAlarm,
+          );
           siteAlarm = false;
           mode = GameMode.base;
           return;
@@ -1187,6 +1211,11 @@ Future<void> _siteModeAux() async {
 
           await conquerTextCCS();
 
+          operation?.resolve(
+            OperationResolutionPath.ccsTakeover,
+            siteCrime: siteCrime,
+            siteAlarmed: siteAlarm,
+          );
           //RESET MODE
           mode = GameMode.base;
           return;
@@ -1501,6 +1530,7 @@ Future<void> _siteModeAux() async {
             await conquerText();
             await escapeSiege(true);
 
+            operation?.resolve(OperationResolutionPath.siegeVictory);
             //RESET MODE
             mode = GameMode.base;
             return;
