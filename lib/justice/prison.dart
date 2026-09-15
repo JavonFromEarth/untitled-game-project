@@ -12,6 +12,7 @@ import 'package:lcs_new_age/justice/crimes.dart';
 import 'package:lcs_new_age/location/location.dart';
 import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/site.dart';
+import 'package:lcs_new_age/playthrough_log/member_death_history.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/utils/colors.dart';
@@ -149,7 +150,14 @@ Future<void> prison(Creature g) async {
           addjuice(boss, -50, -50);
         }
 
+        final death = MemberDeathRecord.capture(
+          g,
+          MemberDeathCause.execution,
+          sourceSite: g.site,
+          context: {'executionAuthority': 'state'},
+        );
         g.die();
+        death?.record();
       }
       //SET FREE
       else {
@@ -358,7 +366,13 @@ Future<void> laborCamp(Creature g) async {
         "${g.name}$experience${_juiceSuffix(g.juice - before)}",
       );
     } else {
+      final death = MemberDeathRecord.capture(
+        g,
+        MemberDeathCause.prisonDeath,
+        sourceSite: g.site,
+      );
       g.die();
+      death?.record();
       g.location = null;
       await _prisonSceneLine("${g.name} is found dead.");
     }

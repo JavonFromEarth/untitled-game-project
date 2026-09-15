@@ -24,6 +24,7 @@ import 'package:lcs_new_age/location/siege.dart';
 import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/newspaper/display_news.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
+import 'package:lcs_new_age/playthrough_log/member_death_history.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/politics/views.dart';
@@ -669,7 +670,14 @@ Future<void> siegeCheck() async {
                       //Add limit for killed_y.
                     }
                     move(killedY, killedX);
+                    final death = MemberDeathRecord.capture(
+                      pool[i],
+                      MemberDeathCause.carBomb,
+                      sourceSite: l,
+                      context: {'attackerFaction': 'ccs'},
+                    );
                     pool[i].die();
+                    death?.record();
                     setColor(pool[i].align.color);
                     addstr("${pool[i].name}, ");
                     killedX += namelength + 2;
@@ -938,7 +946,14 @@ Future<void> siegeTurn() async {
 
         // Check if liberal starved to death.
         if (p.blood <= 0) {
+          // This branch also processes existing depleted blood when fed.
+          final death = MemberDeathRecord.capture(
+            p,
+            starving ? MemberDeathCause.starvation : MemberDeathCause.injuries,
+            sourceSite: l,
+          );
           p.die();
+          death?.record();
           await showMessage("${p.name} has starved to death.");
         }
       }
@@ -984,8 +999,14 @@ Future<void> siegeTurn() async {
               if (target.align == Alignment.liberal) {
                 liberalcount--;
               }
+              final death = MemberDeathRecord.capture(
+                target,
+                MemberDeathCause.sniperFire,
+                sourceSite: l,
+              );
               target.squad = null;
               target.die();
+              death?.record();
             } else {
               await showMessage("A sniper nearly hits ${target.name}!");
             }
@@ -1060,8 +1081,14 @@ Future<void> siegeTurn() async {
                   if (victim.align == Alignment.liberal) {
                     liberalcount--;
                   }
+                  final death = MemberDeathRecord.capture(
+                    victim,
+                    MemberDeathCause.airStrike,
+                    sourceSite: l,
+                  );
                   victim.squad = null;
                   victim.die();
+                  death?.record();
                 } else if (oneIn(2)) {
                   await showMessage("${victim.name} narrowly avoids death!");
                 } else {
@@ -1424,8 +1451,15 @@ Future<void> siegeDefeat() async {
       if (p.location != loc) continue;
 
       killnumber++;
+      final death = MemberDeathRecord.capture(
+        p,
+        MemberDeathCause.massacre,
+        sourceSite: loc,
+        context: {'siegeOutcome': 'defeat'},
+      );
       p.squad = null;
       p.die();
+      death?.record();
       p.location = null;
     }
 

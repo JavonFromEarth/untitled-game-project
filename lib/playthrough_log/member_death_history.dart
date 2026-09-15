@@ -14,13 +14,21 @@ enum MemberDeathCause {
   bleeding('bleeding'),
   chaseViolence('chase_violence'),
   vehicleCrash('vehicle_crash'),
-  injuries('injuries');
+  injuries('injuries'),
+  oldAge('old_age'),
+  carBomb('car_bomb'),
+  starvation('starvation'),
+  sniperFire('sniper_fire'),
+  airStrike('air_strike'),
+  massacre('massacre'),
+  execution('execution'),
+  prisonDeath('prison_death');
 
   const MemberDeathCause(this.wireName);
   final String wireName;
 }
 
-/// For these operational resolvers, pre-death pool presence is necessary but
+/// For the instrumented resolvers, pre-death pool presence is necessary but
 /// insufficient: affiliation also needs history or an organizational anchor.
 /// Legacy fallback requires an organizational anchor and excludes unresolved
 /// captives/prospects. A bare hireId (or a command cycle) is not an anchor.
@@ -83,6 +91,7 @@ class MemberDeathRecord {
     Site? sourceSite,
     Creature? actor,
     Vehicle? vehicle,
+    Map<String, dynamic>? context,
   }) {
     if (!member.alive || !hasMemberHistoryEvidence(member)) return null;
     // No resurrection model exists. Refuse duplicate history without changing
@@ -96,17 +105,21 @@ class MemberDeathRecord {
       'memberTypeName': member.type.name,
       'cause': cause.wireName,
       if (site != null) 'sourceSite': site,
+      if (context != null) 'context': context,
       if (actor != null &&
           (cause == MemberDeathCause.combatInjury ||
-              cause == MemberDeathCause.chaseViolence))
+              cause == MemberDeathCause.chaseViolence ||
+              cause == MemberDeathCause.execution))
         'actor': {
           'actorId': actor.id,
           'actorName': actor.name,
           'actorTypeId': actor.typeId,
           'actorTypeName': actor.type.name,
-          'role': cause == MemberDeathCause.combatInjury
-              ? 'attacker'
-              : 'pursuer',
+          'role': switch (cause) {
+            MemberDeathCause.combatInjury => 'attacker',
+            MemberDeathCause.chaseViolence => 'pursuer',
+            _ => 'executioner',
+          },
         },
       if (vehicle != null && cause == MemberDeathCause.vehicleCrash)
         'vehicle': {

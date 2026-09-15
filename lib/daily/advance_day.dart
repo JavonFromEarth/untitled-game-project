@@ -229,6 +229,10 @@ Future<void> _carUpSquad(Squad squad, List<Vehicle> vehiclesInUse) async {
   }
 }
 
+/// Narrow test seam for the existing aging resolver.
+@visibleForTesting
+Future<void> ageThings() => _ageThings();
+
 Future<void> _ageThings() async {
   gameState.date = gameState.date.add(const Duration(days: 1));
   for (Creature c in pool) {
@@ -240,7 +244,13 @@ Future<void> _ageThings() async {
         if (c.health > 1) {
           c.permanentHealthDamage = c.permanentHealthDamage + 1;
         } else {
+          final death = MemberDeathRecord.capture(
+            c,
+            MemberDeathCause.oldAge,
+            sourceSite: c.site,
+          );
           c.die();
+          death?.record();
           await showMessageOrLog(
             "${c.name} has passed away at the age of ${c.age}.",
           );

@@ -10,6 +10,7 @@ import 'package:lcs_new_age/justice/crimes.dart';
 import 'package:lcs_new_age/location/location_type.dart';
 import 'package:lcs_new_age/location/site.dart';
 import 'package:lcs_new_age/newspaper/news_story.dart';
+import 'package:lcs_new_age/playthrough_log/member_death_history.dart';
 import 'package:lcs_new_age/politics/alignment.dart';
 import 'package:lcs_new_age/politics/laws.dart';
 import 'package:lcs_new_age/title_screen/game_over.dart';
@@ -116,8 +117,15 @@ Future<void> surrenderAndDie(Site loc) async {
     if (c.alive && c.align == Alignment.liberal) {
       killNumber++;
     }
+    final death = MemberDeathRecord.capture(
+      c,
+      MemberDeathCause.massacre,
+      sourceSite: loc,
+      context: {'siegeOutcome': 'surrender'},
+    );
     c.squad = null;
     c.die();
+    death?.record();
     c.location = null;
   }
 
